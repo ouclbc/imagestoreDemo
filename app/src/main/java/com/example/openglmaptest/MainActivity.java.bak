@@ -1,0 +1,76 @@
+package com.example.openglmaptest;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import kotlin.Metadata;
+import kotlin.jvm.internal.Intrinsics;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+
+public final class MainActivity extends AppCompatActivity {
+   private MyGLSurfaceView mSurfaceView;
+   private TextView mShowText;
+
+   protected void onCreate(@Nullable Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
+      setContentView(R.layout.activity_main);
+      mSurfaceView = (MyGLSurfaceView)this.findViewById(1000183);
+      mShowText = (TextView)this.findViewById(1000030);
+
+      mSurfaceView.getNativeRender().native_OnInit();
+   }
+
+   @SuppressLint({"ResourceType"})
+   private final void loadImage() {
+      InputStream var10000 = this.getResources().openRawResource(700048);
+      Intrinsics.checkExpressionValueIsNotNull(var10000, "this.resources.openRawResource(R.drawable.tmap)");
+      InputStream inputStream = var10000;
+      Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+      if (bitmap != null) {
+         int bytes = bitmap.getByteCount();
+         ByteBuffer buf = ByteBuffer.allocate(bytes);
+         bitmap.copyPixelsToBuffer((Buffer)buf);
+         byte[] byteArray = buf.array();
+        mSurfaceView.getNativeRender().native_SetImageData(1, bitmap.getWidth(), bitmap.getHeight(), byteArray);
+      }
+
+      try {
+         inputStream.close();
+      } catch (IOException var6) {
+         var6.printStackTrace();
+      }
+
+   }
+
+   public final void showTexture(@NotNull View view) {
+      Intrinsics.checkParameterIsNotNull(view, "view");
+      Toast.makeText((Context)this, (CharSequence)"show Image", 1).show();
+      this.loadImage();
+      mShowText.setVisibility(8);
+      mSurfaceView.requestRender();
+   }
+
+   protected void onDestroy() {
+      super.onDestroy();
+      MyGLSurfaceView var10000 = this.mSurfaceView;
+      if (var10000 != null) {
+         MyNativeRender var1 = var10000.getNativeRender();
+         if (var1 != null) {
+            var1.native_OnUnInit();
+         }
+      }
+
+   }
+}
